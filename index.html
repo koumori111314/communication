@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CommuStep - プロトタイプ</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* 新規カード追加時のふわっと出るアニメーション用 */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -16,298 +18,584 @@
         .animate-fade-in {
             animation: fadeInUp 0.4s ease-out forwards;
         }
+        /* スクロールバーのカスタマイズ（PC閲覧時を美しく） */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-gray-50 h-screen flex flex-col text-gray-800 select-none">
+<body class="bg-gray-50 h-screen flex text-gray-800 select-none overflow-hidden">
 
-    <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center z-10">
-        <h1 class="text-xl font-bold">CommuStep</h1>
-        <span id="status-badge" class="bg-gray-400 text-white text-xs font-bold px-2 py-1 rounded transition-colors duration-300">
-            認定試験 未合格
-        </span>
-    </header>
+    <!-- ================= DESKTOP SIDEBAR ================= -->
+    <aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 shadow-sm z-20 shrink-0">
+        <div class="p-6 bg-blue-600 text-white">
+            <h1 class="text-2xl font-bold mb-2">CommuStep</h1>
+            <span class="status-badge bg-gray-400 text-white text-xs font-bold px-2 py-1 rounded transition-colors duration-300 inline-block">
+                認定試験 未合格
+            </span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button onclick="switchTab('dashboard')" id="nav-desktop-dashboard" class="w-full flex items-center gap-3 px-4 py-3 text-blue-600 bg-blue-50 rounded-lg transition font-bold">
+                <i class="fas fa-chart-pie w-5 text-center"></i> <span>ダッシュボード</span>
+            </button>
+            <button onclick="switchTab('study')" id="nav-desktop-study" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-bold">
+                <i class="fas fa-book w-5 text-center"></i> <span>座学</span>
+            </button>
+            <button onclick="switchTab('coach')" id="nav-desktop-coach" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-bold">
+                <i class="fas fa-microphone w-5 text-center"></i> <span>AIコーチ</span>
+            </button>
+            <button onclick="switchTab('board')" id="nav-desktop-board" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-bold relative">
+                <i class="fas fa-users w-5 text-center"></i> <span>掲示板</span>
+                <span class="nav-lock-icon absolute right-4 text-[10px] bg-yellow-400 text-blue-900 px-1.5 py-0.5 rounded-full"><i class="fas fa-lock"></i></span>
+            </button>
+            <button onclick="switchTab('talk')" id="nav-desktop-talk" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-bold relative">
+                <i class="fas fa-comments w-5 text-center"></i> <span>トーク</span>
+                <span class="nav-new-badge absolute right-4 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full hidden"><i class="fas fa-star"></i></span>
+            </button>
+            <button onclick="switchTab('profile')" id="nav-desktop-profile" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-bold">
+                <i class="fas fa-user w-5 text-center"></i> <span>プロフィール</span>
+            </button>
+        </nav>
+    </aside>
 
-    <main class="flex-1 overflow-y-auto p-4 mb-16 space-y-6 relative">
+    <!-- ================= MAIN CONTENT WRAPPER ================= -->
+    <div class="flex-1 flex flex-col h-screen relative overflow-hidden">
         
-        <section id="dashboard-screen" class="space-y-6">
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-lg font-bold mb-2">現在のステータス</h2>
-                <p id="status-text" class="text-gray-600 mb-4">AIコーチングを完了させて、認定試験に挑戦しましょう。</p>
-                
-                <div class="flex gap-2">
-                    <button onclick="simulateExamPass()" id="exam-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition shadow">
-                        <i class="fas fa-graduation-cap mr-2"></i>認定試験に合格する（デモ用）
-                    </button>
-                    <button onclick="resetStatus()" id="reset-btn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition hidden">
-                        ステータスをリセット
-                    </button>
-                </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-lg font-bold mb-4">あなたのコミュニケーション傾向</h2>
-                <div class="relative h-64 w-full">
-                    <canvas id="radarChart"></canvas>
-                </div>
-            </div>
-        </section>
+        <!-- Mobile Header -->
+        <header class="md:hidden bg-blue-600 text-white p-4 shadow-md flex justify-between items-center z-10 shrink-0">
+            <h1 class="text-xl font-bold">CommuStep</h1>
+            <span class="status-badge bg-gray-400 text-white text-xs font-bold px-2 py-1 rounded transition-colors duration-300">
+                認定試験 未合格
+            </span>
+        </header>
 
-        <section id="study-screen" class="hidden space-y-6">
-            <h2 class="text-xl font-bold border-b pb-2">コミュニケーション座学講座</h2>
-            
-            <div class="bg-white rounded-lg shadow p-5 space-y-3 border-l-4 border-blue-500">
-                <div class="flex items-center gap-2 text-blue-600 font-bold text-sm">
-                    <i class="fas fa-ear-listen"></i> <span>講義 01</span>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900">信頼を築く「傾聴」の基礎</h3>
-                <p class="text-sm text-gray-600 leading-relaxed">
-                    新卒や若手社会人が最も陥りやすい罠は、自分の意見や既知の情報を一方的に話しすぎてしまうことです。まずは相手の話を遮らずに最後まで聞く姿勢が、信頼関係構築の土台になります。
-                </p>
-                <div class="bg-gray-50 p-3 rounded text-xs space-y-1 text-gray-700">
-                    <p class="font-bold text-gray-900 mb-1">💡 実践のポイント:</p>
-                    <p>・<strong>話す比率は「相手7：自分3」</strong>を意識する。</p>
-                    <p>・ただ聞くだけでなく、適切なうなずきと相槌で「聴いている」姿勢を可視化する。</p>
-                </div>
-            </div>
+        <!-- Scrollable Content Area -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-8 pb-20 md:pb-8 w-full">
+            <div class="max-w-3xl mx-auto h-full flex flex-col"> <!-- PC閲覧時の間延びを防ぐ中央寄せコンテナ -->
 
-            <div class="bg-white rounded-lg shadow p-5 space-y-3 border-l-4 border-purple-500">
-                <div class="flex items-center gap-2 text-purple-600 font-bold text-sm">
-                    <i class="fas fa-question-circle"></i> <span>講義 02</span>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900">相手のニーズを引き出す「質問技術」</h3>
-                <p class="text-sm text-gray-600 leading-relaxed">
-                    打ち合わせの場で「御社の課題は何ですか？」とストレートに聞くのは準備不足の証拠です。事前に集めた情報や業界動向からあらかじめ仮説を立て、それをぶつける質問が効果的です。
-                </p>
-            </div>
-        </section>
+                <!-- 1. DASHBOARD SCREEN -->
+                <section id="dashboard-screen" class="space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow border border-gray-100">
+                        <h2 class="text-lg font-bold mb-2">現在のステータス</h2>
+                        <p id="status-text" class="text-gray-600 mb-4">AIコーチングを完了させて、認定試験に挑戦しましょう。</p>
+                        
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="simulateExamPass()" id="exam-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition shadow">
+                                <i class="fas fa-graduation-cap mr-2"></i>認定試験に合格する（デモ用）
+                            </button>
+                            <button onclick="resetStatus()" id="reset-btn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition hidden">
+                                ステータスをリセット
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow border border-gray-100">
+                        <h2 class="text-lg font-bold mb-4">あなたのコミュニケーション傾向</h2>
+                        <div class="relative h-64 md:h-80 w-full">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </section>
 
-        <section id="coach-screen" class="hidden space-y-6">
-            <div id="coach-init-view" class="space-y-6">
-                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 rounded-xl shadow-lg text-center">
-                    <h2 class="text-xl font-bold mb-2">実践的ロールプレイ</h2>
-                    <p class="text-sm text-blue-100 mb-4">AI相手に音声でいつでも会話の練習が可能です。</p>
-                    <button onclick="startCoachingSession()" class="bg-white text-blue-600 font-bold px-6 py-3 rounded-full shadow-md hover:bg-blue-50 transition inline-flex items-center gap-2">
-                        <i class="fas fa-play-circle text-lg"></i> 会話を始める
-                    </button>
-                </div>
-
-                <div>
-                    <h3 class="font-bold text-gray-700 mb-3"><i class="fas fa-history mr-2"></i>過去のフィードバック履歴</h3>
-                    <div id="history-list" class="space-y-3">
-                        <div onclick="openHistoryDetail('2026/06/12', '上司への進捗報告', 82, '進捗データを事実と解釈に分けて明確に報告できていました。代案の提示がもう少し具体的だとさらに素晴らしいです。')" class="bg-white p-4 rounded-lg shadow flex justify-between items-center cursor-pointer hover:bg-gray-50 transition border border-gray-100">
-                            <div>
-                                <span class="text-xs text-gray-400 block">2026/06/12</span>
-                                <span class="font-bold text-gray-900">社内：上司への進捗報告練習</span>
+                <!-- 2. STUDY SCREEN -->
+                <section id="study-screen" class="hidden space-y-6">
+                    <h2 class="text-xl font-bold border-b pb-2">コミュニケーション座学講座</h2>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-white rounded-xl shadow p-5 space-y-3 border-l-4 border-blue-500">
+                            <div class="flex items-center gap-2 text-blue-600 font-bold text-sm">
+                                <i class="fas fa-ear-listen"></i> <span>講義 01</span>
                             </div>
-                            <span class="bg-blue-100 text-blue-800 text-sm font-bold px-3 py-1 rounded-full">82点</span>
+                            <h3 class="text-lg font-bold text-gray-900">信頼を築く「傾聴」の基礎</h3>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                自分の意見や既知の情報を一方的に話しすぎてしまうのを防ぎます。相手の話を遮らずに最後まで聞く姿勢が信頼構築の土台です。
+                            </p>
+                            <div class="bg-gray-50 p-3 rounded text-xs space-y-1 text-gray-700 mt-auto">
+                                <p class="font-bold text-gray-900 mb-1">💡 ポイント: 話す比率は「相手7：自分3」</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow p-5 space-y-3 border-l-4 border-purple-500 flex flex-col">
+                            <div class="flex items-center gap-2 text-purple-600 font-bold text-sm">
+                                <i class="fas fa-question-circle"></i> <span>講義 02</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900">相手のニーズを引き出す「質問技術」</h3>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                「御社の課題は何ですか？」とストレートに聞くのは準備不足。集めた情報から仮説を立ててぶつける質問が効果的です。
+                            </p>
+                            <div class="bg-gray-50 p-3 rounded text-xs space-y-1 text-gray-700 mt-auto">
+                                <p class="font-bold text-gray-900 mb-1">💡 ポイント: 仮説ベースで問いかける</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <div id="coach-active-view" class="hidden flex flex-col h-[calc(100vh-160px)]">
-                <div class="flex items-center gap-4 bg-white p-3 rounded-xl shadow mb-3 border border-gray-100">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150&h=150" alt="AI客・上司" class="w-14 h-14 rounded-full object-cover border-2 border-blue-500 shadow">
-                    <div>
-                        <h4 class="font-bold text-gray-900">鈴木 部長（模擬AI）</h4>
-                        <p class="text-xs text-green-600 flex items-center gap-1">
-                            <span class="inline-block w-2 h-2 bg-green-500 rounded-full animate-ping"></span> 音声認識・接続中
-                        </p>
-                    </div>
-                    <div class="ml-auto text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded">
-                        往復数: <span id="turn-counter" class="font-bold text-blue-600">0</span> / 3
-                    </div>
-                </div>
-
-                <div id="chat-area" class="flex-1 bg-white rounded-xl shadow p-4 overflow-y-auto space-y-4 mb-3 border border-gray-100">
-                    <div class="flex items-start">
-                        <div class="bg-blue-100 p-3 rounded-lg max-w-[80%]">
-                            <p class="text-sm">お疲れ様。例の新規プロジェクトの進捗状況はどうなっているかな？</p>
+                <!-- 3. AI COACH SCREEN -->
+                <section id="coach-screen" class="hidden flex-1 flex flex-col min-h-[500px]">
+                    <!-- 3-A: 初期画面 -->
+                    <div id="coach-init-view" class="space-y-6">
+                        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 md:p-8 rounded-xl shadow-lg text-center">
+                            <h2 class="text-2xl font-bold mb-2">実践的ロールプレイ</h2>
+                            <p class="text-sm md:text-base text-blue-100 mb-6">AI相手に音声でいつでも会話の練習が可能です。</p>
+                            <button onclick="startCoachingSession()" class="bg-white text-blue-600 font-bold px-8 py-3 rounded-full shadow-md hover:bg-blue-50 transition inline-flex items-center gap-2">
+                                <i class="fas fa-play-circle text-lg"></i> 会話を始める
+                            </button>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-700 mb-3"><i class="fas fa-history mr-2"></i>過去のフィードバック履歴</h3>
+                            <div class="space-y-3">
+                                <div onclick="openHistoryDetail('2026/06/12', '上司への進捗報告', 82, '進捗データを事実と解釈に分けて明確に報告できていました。代案の提示がもう少し具体的だとさらに素晴らしいです。')" class="bg-white p-4 rounded-xl shadow flex justify-between items-center cursor-pointer hover:bg-gray-50 transition border border-gray-100">
+                                    <div>
+                                        <span class="text-xs text-gray-400 block">2026/06/12</span>
+                                        <span class="font-bold text-gray-900">社内：上司への進捗報告練習</span>
+                                    </div>
+                                    <span class="bg-blue-100 text-blue-800 text-sm font-bold px-3 py-1 rounded-full">82点</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="bg-white p-3 rounded-xl shadow border border-gray-100 flex flex-col gap-2">
-                    <div id="mic-status" class="text-xs text-center text-blue-600 font-medium py-1 hidden animate-pulse">
-                        <i class="fas fa-microphone mr-1"></i> マイクから音声を収音しています...
+
+                    <!-- 3-B: 会話中画面 -->
+                    <div id="coach-active-view" class="hidden flex-1 flex flex-col h-full">
+                        <div class="flex items-center gap-4 bg-white p-3 rounded-xl shadow mb-3 border border-gray-100 shrink-0">
+                            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150&h=150" alt="AI客・上司" class="w-14 h-14 rounded-full object-cover border-2 border-blue-500 shadow">
+                            <div>
+                                <h4 class="font-bold text-gray-900">鈴木 部長（模擬AI）</h4>
+                                <p class="text-xs text-green-600 flex items-center gap-1">
+                                    <span class="inline-block w-2 h-2 bg-green-500 rounded-full animate-ping"></span> 接続中
+                                </p>
+                            </div>
+                            <div class="ml-auto text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded">
+                                往復数: <span id="turn-counter" class="font-bold text-blue-600">0</span> / 3
+                            </div>
+                        </div>
+
+                        <div id="chat-area" class="flex-1 bg-white rounded-xl shadow p-4 overflow-y-auto space-y-4 mb-3 border border-gray-100">
+                            <div class="flex items-start">
+                                <div class="bg-blue-100 p-3 rounded-lg max-w-[80%]"><p class="text-sm">お疲れ様。例の新規プロジェクトの進捗状況はどうなっているかな？</p></div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-3 rounded-xl shadow border border-gray-100 flex flex-col gap-2 shrink-0">
+                            <div id="mic-status" class="text-xs text-center text-blue-600 font-medium py-1 hidden animate-pulse">
+                                <i class="fas fa-microphone mr-1"></i> マイクから音声を収音しています...
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="toggleMicSimulate()" id="mic-btn" class="bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center hover:bg-red-600 transition shadow shrink-0">
+                                    <i class="fas fa-microphone text-lg"></i>
+                                </button>
+                                <input type="text" id="chat-input" class="flex-1 border border-gray-200 rounded-full px-4 py-3 focus:outline-none focus:border-blue-500 text-sm" placeholder="メッセージを入力...">
+                                <button onclick="handleSend()" class="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center hover:bg-blue-700 transition shadow shrink-0">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="toggleMicSimulate()" id="mic-btn" class="bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center hover:bg-red-600 transition shadow">
-                            <i class="fas fa-microphone text-lg"></i>
+
+                    <!-- 3-C: フィードバック画面 -->
+                    <div id="coach-report-view" class="hidden bg-white p-6 md:p-8 rounded-xl shadow-lg space-y-6 border border-gray-100 text-center">
+                        <div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl">
+                            <i class="fas fa-poll-h"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">セッション診断結果</span>
+                            <h3 class="text-2xl font-black text-gray-900 mt-1">AI詳細フィードバック</h3>
+                        </div>
+                        <div class="bg-gray-50 p-5 rounded-xl text-left space-y-4">
+                            <div class="flex justify-between items-center border-b pb-3">
+                                <span class="font-bold text-gray-700">総合スコア:</span>
+                                <span class="text-3xl font-black text-blue-600">85<span class="text-lg">点</span></span>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-xs font-bold text-amber-700"><i class="fas fa-exclamation-circle mr-1"></i> 改善のポイント</p>
+                                <p class="text-sm text-gray-600 leading-relaxed">
+                                    中盤で上司の話を若干遮るようなタイミングでの発言が検知されました。まずは相手の話を完全に「傾聴」しきってから、自分の仮説や代案を提示すると評価が跳ね上がります。
+                                </p>
+                            </div>
+                        </div>
+                        <button onclick="exitReportView()" class="w-full bg-blue-600 text-white font-bold py-3 md:py-4 rounded-lg hover:bg-blue-700 transition shadow">
+                            確認して履歴一覧に戻る
                         </button>
-                        <input type="text" id="chat-input" class="flex-1 border border-gray-200 rounded-full px-4 py-3 focus:outline-none focus:border-blue-500 text-sm" placeholder="マイクボタンを押すか、テキストを入力...">
-                        <button onclick="handleSend()" class="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center hover:bg-blue-700 transition shadow">
-                            <i class="fas fa-paper-plane"></i>
+                    </div>
+                </section>
+
+                <!-- 4. BOARD SCREEN -->
+                <section id="board-screen" class="hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold">社外交流掲示板</h2>
+                        <button onclick="handleCreateEvent()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow flex items-center gap-2 transition hover:bg-blue-700 text-sm md:text-base">
+                            <i class="fas fa-plus"></i> イベントを作る
                         </button>
                     </div>
-                </div>
-            </div>
 
-            <div id="coach-report-view" class="hidden bg-white p-6 rounded-xl shadow-lg space-y-6 border border-gray-100 text-center">
-                <div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl">
-                    <i class="fas fa-poll-h"></i>
-                </div>
-                <div>
-                    <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">セッション診断結果</span>
-                    <h3 class="text-2xl font-black text-gray-900 mt-1">AI詳細フィードバック</h3>
-                </div>
-
-                <div class="bg-gray-50 p-4 rounded-xl text-left space-y-3">
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <span class="font-bold text-gray-700">総合スコア:</span>
-                        <span class="text-2xl font-black text-blue-600">85点</span>
+                    <div id="event-list" class="grid gap-4 md:grid-cols-2">
+                        <div class="bg-white p-5 rounded-xl shadow border border-gray-100 border-l-4 border-l-blue-500">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded">相性 92%</span>
+                                <span class="text-xs text-gray-400">開催：今週末</span>
+                            </div>
+                            <h3 class="font-bold text-base mb-1">【異業種】新社会人でのんびりカフェ雑談会</h3>
+                            <p class="text-sm text-gray-600 mb-3">日常業務の悩みや、他業界の同期がどんな仕事をしてるか気軽に話しませんか？</p>
+                            <div class="text-xs text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> 名古屋駅周辺のカフェ</div>
+                        </div>
                     </div>
-                    <div class="space-y-1">
-                        <p class="text-xs font-bold text-amber-700"><i class="fas fa-exclamation-circle mr-1"></i> 改善のポイント</p>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            中盤で上司の話を若干遮るようなタイミングでの発言が検知されました。まずは相手の話を完全に「傾聴」しきってから、自分の仮説や代案を提示すると評価が跳ね上がります。
-                        </p>
+                </section>
+
+                <!-- 5. CREATE EVENT SCREEN -->
+                <section id="create-event-screen" class="hidden space-y-4">
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <button onclick="cancelCreateEvent()" class="text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100">
+                            <i class="fas fa-arrow-left"></i> 戻る
+                        </button>
+                        <h2 class="text-lg font-bold">新規イベント作成</h2>
+                        <div class="w-16"></div>
                     </div>
-                </div>
-                <button onclick="exitReportView()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow">
-                    確認して履歴一覧に戻る
-                </button>
-            </div>
-        </section>
+                    
+                    <div class="bg-white p-6 md:p-8 rounded-xl shadow border border-gray-100 space-y-5">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">イベントタイトル <span class="text-red-500">*</span></label>
+                            <input type="text" id="event-title" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="例：【スキル向上】営業職のロープレ会">
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">開催日時 <span class="text-red-500">*</span></label>
+                                <input type="datetime-local" id="event-date" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">定員制限 <span class="text-red-500">*</span></label>
+                                <select id="event-capacity" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 text-sm">
+                                    <option value="2">2名 (1対1)</option>
+                                    <option value="4">4名</option>
+                                    <option value="10">10名</option>
+                                </select>
+                            </div>
+                        </div>
 
-        <section id="board-screen" class="hidden space-y-6">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-bold">社外交流掲示板</h2>
-                <button onclick="handleCreateEvent()" id="create-event-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow flex items-center gap-2 transition hover:bg-blue-700">
-                    <i class="fas fa-plus"></i> イベントを作る
-                </button>
-            </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">開催場所 <span class="text-red-500">*</span></label>
+                            <div class="flex gap-4 mb-2">
+                                <label class="flex items-center gap-1 text-sm"><input type="radio" name="location-type" value="offline" checked> オフライン</label>
+                                <label class="flex items-center gap-1 text-sm"><input type="radio" name="location-type" value="online"> オンライン</label>
+                            </div>
+                            <input type="text" id="event-location" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" placeholder="例：名古屋駅周辺のカフェ / Zoomリンク等">
+                        </div>
 
-            <div id="event-list" class="grid gap-4 md:grid-cols-2">
-                <div class="bg-white p-5 rounded-lg shadow border-l-4 border-blue-500">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded">相性 92%</span>
-                        <span class="text-xs text-gray-400">開催：今週末</span>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">詳細・アジェンダ</label>
+                            <textarea id="event-desc" rows="4" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 text-sm" placeholder="イベントの目的や、どんな人と話したいかを記載してください。"></textarea>
+                        </div>
+                        
+                        <button onclick="submitNewEvent()" class="w-full bg-blue-600 text-white font-bold py-3 md:py-4 rounded-lg hover:bg-blue-700 transition shadow mt-2">
+                            イベントを公開する
+                        </button>
                     </div>
-                    <h3 class="font-bold text-base mb-1">【異業種】新社会人でのんびりカフェ雑談会</h3>
-                    <p class="text-sm text-gray-600 mb-3">日常業務の悩みや、他業界の同期がどんな仕事をしてるか気軽に話しませんか？</p>
-                    <div class="text-xs text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> 名古屋駅周辺のカフェ</div>
-                </div>
-            </div>
-        </section>
+                </section>
 
-        <section id="create-event-screen" class="hidden space-y-4">
-            <div class="flex items-center justify-between border-b pb-2">
-                <button onclick="cancelCreateEvent()" class="text-gray-500 hover:text-gray-700 flex items-center gap-1">
-                    <i class="fas fa-arrow-left"></i> 戻る
-                </button>
-                <h2 class="text-lg font-bold">新規イベント作成</h2>
-                <div class="w-16"></div> </div>
-            
-            <div class="bg-white p-5 rounded-xl shadow border border-gray-100 space-y-4">
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">イベントタイトル <span class="text-red-500">*</span></label>
-                    <input type="text" id="event-title" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="例：【スキル向上】営業職のロープレ会">
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">開催日時 <span class="text-red-500">*</span></label>
-                        <input type="datetime-local" id="event-date" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 text-sm">
+                <!-- 6. TALK SCREEN -->
+                <section id="talk-screen" class="hidden flex-1 flex flex-col min-h-[500px]">
+                    <!-- 6-A: トーク一覧画面 -->
+                    <div id="talk-list-view" class="flex-1 flex flex-col space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold">トーク</h2>
+                            <button onclick="startMatching()" class="bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-lg font-medium shadow flex items-center gap-2 transition hover:from-red-600 hover:to-pink-600 text-sm md:text-base">
+                                <i class="fas fa-heart"></i> <span class="hidden md:inline">今日のおすすめ</span><span class="md:hidden">おすすめ</span>
+                            </button>
+                        </div>
+
+                        <div id="talk-list" class="flex-1 space-y-2 overflow-y-auto">
+                            <div onclick="openChatView('user-1')" class="bg-white p-4 rounded-xl shadow border border-gray-100 cursor-pointer hover:bg-gray-50 transition flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100&h=100" alt="田中" class="w-14 h-14 rounded-full object-cover border-2 border-blue-500">
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-bold text-gray-900">田中 花子</h4>
+                                    <p class="text-sm text-gray-500 truncate">営業職・27歳・東京</p>
+                                    <p class="text-xs text-gray-400 mt-1">相性: 88%</p>
+                                </div>
+                                <div class="text-sm text-gray-400 shrink-0">今日</div>
+                            </div>
+                            <div onclick="openChatView('user-2')" class="bg-white p-4 rounded-xl shadow border border-gray-100 cursor-pointer hover:bg-gray-50 transition flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100&h=100" alt="鈴木" class="w-14 h-14 rounded-full object-cover border-2 border-pink-500">
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-bold text-gray-900">鈴木 美咲</h4>
+                                    <p class="text-sm text-gray-500 truncate">企画職・26歳・名古屋</p>
+                                    <p class="text-xs text-gray-400 mt-1">相性: 82%</p>
+                                </div>
+                                <div class="text-sm text-gray-400 shrink-0">昨日</div>
+                            </div>
+                            <div onclick="openChatView('user-3')" class="bg-white p-4 rounded-xl shadow border border-gray-100 cursor-pointer hover:bg-gray-50 transition flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100&h=100" alt="佐藤" class="w-14 h-14 rounded-full object-cover border-2 border-purple-500">
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-bold text-gray-900">佐藤 由美</h4>
+                                    <p class="text-sm text-gray-500 truncate">企画職・28歳・大阪</p>
+                                    <p class="text-xs text-gray-400 mt-1">相性: 75%</p>
+                                </div>
+                                <div class="text-sm text-gray-400 shrink-0">3日前</div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">定員制限 <span class="text-red-500">*</span></label>
-                        <select id="event-capacity" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 text-sm">
-                            <option value="2">2名 (1対1)</option>
-                            <option value="4">4名</option>
-                            <option value="10">10名</option>
-                        </select>
+
+                    <!-- 6-B: チャット画面 -->
+                    <div id="talk-chat-view" class="hidden flex-1 flex flex-col h-full">
+                        <div class="flex items-center gap-3 bg-white p-4 rounded-xl shadow mb-3 border border-gray-100 shrink-0">
+                            <button onclick="closeChatView()" class="text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <img id="chat-user-img" src="" alt="" class="w-12 h-12 rounded-full object-cover border-2 border-blue-500">
+                            <div class="flex-1">
+                                <h4 id="chat-user-name" class="font-bold text-gray-900">ユーザー名</h4>
+                                <p id="chat-user-info" class="text-xs text-gray-500">職業・年齢・地域</p>
+                            </div>
+                            <div class="text-xs text-gray-500">相性: <span id="chat-compatibility" class="font-bold">85%</span></div>
+                        </div>
+
+                        <div id="talk-chat-area" class="flex-1 bg-white rounded-xl shadow p-4 overflow-y-auto space-y-3 mb-3 border border-gray-100">
+                            <div class="flex items-start">
+                                <div class="bg-blue-100 p-3 rounded-lg max-w-[80%]"><p class="text-sm">こんにちは！マッチングありがとうございます。</p></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3 rounded-xl shadow border border-gray-100 flex items-center gap-2 shrink-0">
+                            <input type="text" id="talk-input" class="flex-1 border border-gray-200 rounded-full px-4 py-3 focus:outline-none focus:border-blue-500 text-sm" placeholder="メッセージを入力...">
+                            <button onclick="sendTalkMessage()" class="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center hover:bg-blue-700 transition shadow shrink-0">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">開催場所 <span class="text-red-500">*</span></label>
-                    <div class="flex gap-4 mb-2">
-                        <label class="flex items-center gap-1 text-sm"><input type="radio" name="location-type" value="offline" checked> オフライン</label>
-                        <label class="flex items-center gap-1 text-sm"><input type="radio" name="location-type" value="online"> オンライン</label>
+                    <!-- 6-C: マッチング画面 -->
+                    <div id="talk-matching-view" class="hidden flex-1 flex flex-col h-full justify-center items-center space-y-6">
+                        <button onclick="closeMatchingView()" class="absolute top-4 left-4 text-gray-500 hover:text-gray-700 px-3 py-2 rounded hover:bg-gray-100">
+                            <i class="fas fa-arrow-left mr-1"></i> 戻る
+                        </button>
+
+                        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full space-y-6 text-center">
+                            <div class="text-sm font-bold text-gray-500 uppercase tracking-wider">今日のおすすめ</div>
+                            
+                            <div class="flex flex-col items-center">
+                                <img id="matching-user-img" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200" alt="おすすめユーザー" class="w-32 h-32 rounded-full object-cover border-4 border-blue-500 mb-4">
+                                <h3 id="matching-user-name" class="text-2xl font-bold text-gray-900">山田 太郎</h3>
+                                <p id="matching-user-info" class="text-sm text-gray-600 mt-1">営業職・29歳・東京</p>
+                                <div class="bg-gradient-to-r from-red-100 to-pink-100 p-3 rounded-lg mt-3 w-full">
+                                    <p class="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-pink-600">相性 91%</p>
+                                </div>
+                            </div>
+
+                            <div class="text-sm text-gray-600 space-y-1">
+                                <p><i class="fas fa-briefcase text-blue-600 mr-2"></i> 営業職</p>
+                                <p><i class="fas fa-map-marker-alt text-blue-600 mr-2"></i> 東京</p>
+                                <p><i class="fas fa-cake-candles text-blue-600 mr-2"></i> 29歳</p>
+                                <p><i class="fas fa-sparkles text-blue-600 mr-2"></i> 人付き合いが得意</p>
+                            </div>
+
+                            <div class="space-y-3">
+                                <button onclick="likeUser()" class="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold py-3 rounded-lg hover:from-red-600 hover:to-pink-600 transition shadow flex items-center justify-center gap-2">
+                                    <i class="fas fa-heart text-lg"></i> いいね！
+                                </button>
+                                <button onclick="skipUser()" class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-300 transition shadow flex items-center justify-center gap-2">
+                                    <i class="fas fa-times text-lg"></i> ごめんなさい
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <input type="text" id="event-location" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="例：名古屋駅周辺のカフェ / Zoomリンク等">
-                </div>
+                </section>
 
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">詳細・アジェンダ</label>
-                    <textarea id="event-desc" rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 text-sm" placeholder="イベントの目的や、どんな人と話したいかを記載してください。"></textarea>
-                </div>
-                
-                <div class="bg-blue-50 p-3 rounded text-xs text-blue-800 flex items-start gap-2">
-                    <i class="fas fa-info-circle mt-0.5"></i>
-                    <p>作成したイベントはKYC（本人確認）が完了しているユーザーのみ参加可能です。[cite: 439]</p>
-                </div>
+                <!-- 7. PROFILE SCREEN -->
+                <section id="profile-screen" class="hidden space-y-6">
+                    <div class="flex items-center justify-between border-b pb-4 mb-6">
+                        <h2 class="text-2xl font-bold">プロフィール編集</h2>
+                    </div>
 
-                <button onclick="submitNewEvent()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow mt-4">
-                    イベントを公開する
-                </button>
-            </div>
-        </section>
+                    <div class="bg-white p-6 md:p-8 rounded-xl shadow border border-gray-100 space-y-6">
+                        <!-- プロフィール画像 -->
+                        <div class="flex flex-col items-center space-y-4">
+                            <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 flex items-center justify-center text-white text-5xl shadow-lg border-4 border-blue-500">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <button onclick="alert('プロフィール画像の変更機能は今後実装予定です。')" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                                画像を変更
+                            </button>
+                        </div>
 
-    </main>
+                        <div class="border-t pt-6 space-y-5">
+                            <!-- 名前 -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">名前 <span class="text-red-500">*</span></label>
+                                <input type="text" id="profile-name" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500" placeholder="例：山田 太郎">
+                            </div>
 
-    <div id="history-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300">
+                            <!-- 年齢 -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">年齢 <span class="text-red-500">*</span></label>
+                                <input type="number" id="profile-age" min="18" max="100" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500" placeholder="例：29">
+                            </div>
+
+                            <!-- 職業 -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">職業 <span class="text-red-500">*</span></label>
+                                <select id="profile-job" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500">
+                                    <option value="">職業を選択してください</option>
+                                    <option value="営業職">営業職</option>
+                                    <option value="企画職">企画職</option>
+                                    <option value="IT職">IT職</option>
+                                    <option value="営業事務">営業事務</option>
+                                    <option value="マーケティング">マーケティング</option>
+                                    <option value="人事">人事</option>
+                                    <option value="財務">財務</option>
+                                    <option value="製造業">製造業</option>
+                                    <option value="その他">その他</option>
+                                </select>
+                            </div>
+
+                            <!-- 地域 -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">地域 <span class="text-red-500">*</span></label>
+                                <select id="profile-location" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500">
+                                    <option value="">地域を選択してください</option>
+                                    <option value="北海道">北海道</option>
+                                    <option value="東京">東京</option>
+                                    <option value="名古屋">名古屋</option>
+                                    <option value="大阪">大阪</option>
+                                    <option value="福岡">福岡</option>
+                                    <option value="その他">その他</option>
+                                </select>
+                            </div>
+
+                            <!-- 自己紹介 -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">自己紹介 <span class="text-gray-400">(200字まで)</span></label>
+                                <textarea id="profile-bio" rows="4" maxlength="200" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 text-sm" placeholder="自分のことを簡潔に紹介してください。趣味や特技など。"></textarea>
+                                <p class="text-xs text-gray-500 mt-1"><span id="bio-count">0</span>/200</p>
+                            </div>
+
+                            <!-- 性格タイプ -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-3">性格タイプ</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
+                                        <input type="radio" name="personality" value="外向的" class="w-4 h-4 text-blue-600">
+                                        <span class="text-sm font-medium text-gray-700">外向的 - 社交好きで、人との関わりを大切にする</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
+                                        <input type="radio" name="personality" value="内向的" class="w-4 h-4 text-blue-600">
+                                        <span class="text-sm font-medium text-gray-700">内向的 - 深い思考が得意で、落ち着いている</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
+                                        <input type="radio" name="personality" value="バランス型" class="w-4 h-4 text-blue-600">
+                                        <span class="text-sm font-medium text-gray-700">バランス型 - 臨機応変に対応できる</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- 興味分野 -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-3">興味分野 <span class="text-gray-400">(複数選択可)</span></label>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    <label class="flex items-center gap-2 p-2">
+                                        <input type="checkbox" class="profile-interests w-4 h-4 text-blue-600" value="ビジネススキル">
+                                        <span class="text-sm text-gray-700">ビジネススキル</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2">
+                                        <input type="checkbox" class="profile-interests w-4 h-4 text-blue-600" value="キャリア相談">
+                                        <span class="text-sm text-gray-700">キャリア相談</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2">
+                                        <input type="checkbox" class="profile-interests w-4 h-4 text-blue-600" value="異業種交流">
+                                        <span class="text-sm text-gray-700">異業種交流</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2">
+                                        <input type="checkbox" class="profile-interests w-4 h-4 text-blue-600" value="趣味">
+                                        <span class="text-sm text-gray-700">趣味</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2">
+                                        <input type="checkbox" class="profile-interests w-4 h-4 text-blue-600" value="起業">
+                                        <span class="text-sm text-gray-700">起業</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2">
+                                        <input type="checkbox" class="profile-interests w-4 h-4 text-blue-600" value="留学">
+                                        <span class="text-sm text-gray-700">留学</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 保存ボタン -->
+                        <div class="border-t pt-6 flex flex-col md:flex-row gap-3">
+                            <button onclick="saveProfile()" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow flex items-center justify-center gap-2">
+                                <i class="fas fa-save"></i> プロフィールを保存
+                            </button>
+                            <button onclick="resetProfileForm()" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-300 transition shadow flex items-center justify-center gap-2">
+                                <i class="fas fa-undo"></i> リセット
+                            </button>
+                        </div>
+
+                        <!-- 保存状態の表示 -->
+                        <div id="profile-saved-message" class="hidden bg-green-50 border border-green-300 rounded-lg p-4 text-center text-green-700 font-medium">
+                            <i class="fas fa-check-circle mr-2"></i> プロフィールが保存されました！
+                        </div>
+                    </div>
+                </section>
+
+        <!-- Mobile Bottom Nav -->
+        <nav class="md:hidden bg-white border-t border-gray-200 absolute bottom-0 w-full flex justify-around p-3 text-gray-500 z-10 shrink-0 pb-safe overflow-x-auto">
+            <button onclick="switchTab('dashboard')" id="nav-mobile-dashboard" class="flex flex-col items-center text-blue-600 w-16 shrink-0">
+                <i class="fas fa-chart-pie text-xl mb-1"></i><span class="text-[10px] font-medium">ダッシュボード</span>
+            </button>
+            <button onclick="switchTab('study')" id="nav-mobile-study" class="flex flex-col items-center hover:text-blue-600 transition w-16 shrink-0">
+                <i class="fas fa-book text-xl mb-1"></i><span class="text-[10px] font-medium">座学</span>
+            </button>
+            <button onclick="switchTab('coach')" id="nav-mobile-coach" class="flex flex-col items-center hover:text-blue-600 transition w-16 shrink-0">
+                <i class="fas fa-microphone text-xl mb-1"></i><span class="text-[10px] font-medium">AIコーチ</span>
+            </button>
+            <button onclick="switchTab('talk')" id="nav-mobile-talk" class="flex flex-col items-center hover:text-blue-600 transition w-16 shrink-0 relative">
+                <i class="fas fa-comments text-xl mb-1"></i><span class="text-[10px] font-medium">トーク</span>
+                <span class="nav-new-mobile-badge absolute -top-1 -right-1 text-[9px] bg-red-500 text-white px-1 rounded-full hidden"><i class="fas fa-star"></i></span>
+            </button>
+            <button onclick="switchTab('board')" id="nav-mobile-board" class="flex flex-col items-center hover:text-blue-600 transition relative w-16 shrink-0">
+                <i class="fas fa-users text-xl mb-1"></i><span class="text-[10px] font-medium">掲示板</span>
+                <span class="nav-lock-icon absolute top-0 right-1 text-[9px] bg-yellow-400 text-blue-900 px-1 rounded-full"><i class="fas fa-lock"></i></span>
+            </button>
+            <button onclick="switchTab('profile')" id="nav-mobile-profile" class="flex flex-col items-center hover:text-blue-600 transition w-16 shrink-0">
+                <i class="fas fa-user text-xl mb-1"></i><span class="text-[10px] font-medium">プロフィール</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ================= MODALS & POPUPS ================= -->
+    <div id="history-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full transform scale-95 transition-transform duration-300">
             <h3 class="text-lg font-bold text-gray-900 mb-1" id="modal-title">履歴詳細</h3>
-            <span class="text-xs text-gray-400 block mb-4" id="modal-date">2026/00/00</span>
-            <div class="bg-gray-50 p-4 rounded-lg space-y-3 mb-6 text-left">
+            <span class="text-xs text-gray-400 block mb-4" id="modal-date"></span>
+            <div class="bg-gray-50 p-4 rounded-lg space-y-3 mb-6 text-left border border-gray-100">
                 <div class="flex justify-between items-center border-b pb-1">
                     <span class="text-sm font-bold text-gray-600">AI評価スコア:</span>
-                    <span class="text-xl font-black text-blue-600" id="modal-score">0点</span>
+                    <span class="text-xl font-black text-blue-600" id="modal-score"></span>
                 </div>
                 <div>
-                    <span class="text-xs font-bold text-blue-600 block mb-1">詳細フィードバックアナリティクス:</span>
-                    <p class="text-sm text-gray-600 leading-relaxed" id="modal-comment">コメントが入ります。</p>
+                    <span class="text-xs font-bold text-blue-600 block mb-1">詳細フィードバック:</span>
+                    <p class="text-sm text-gray-600 leading-relaxed" id="modal-comment"></p>
                 </div>
             </div>
-            <button onclick="closeHistoryModal()" class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition">
-                閉じる
-            </button>
+            <button onclick="closeHistoryModal()" class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition">閉じる</button>
         </div>
     </div>
 
-    <div id="alert-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300">
+    <div id="alert-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-xl max-w-sm w-full transform scale-95 transition-transform duration-300">
             <div class="text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
-                    <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
+                <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-yellow-100 mb-4">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 mb-2">認定試験の合格が必要です</h3>
-                <p class="text-sm text-gray-500 mb-6">
-                    安全で質の高い交流コミュニティを維持するため、イベントの作成にはAIコーチによる認定試験の合格が必須条件となっています。
-                </p>
-                <div class="flex flex-col gap-2">
-                    <button onclick="closeModal(); switchTab('coach');" class="bg-blue-600 text-white w-full py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                <p class="text-sm text-gray-500 mb-6">安全なコミュニティ維持のため、イベント作成にはAIコーチによる認定試験の合格が必須です。</p>
+                <div class="flex flex-col gap-3">
+                    <button onclick="closeModal(); switchTab('coach');" class="bg-blue-600 text-white w-full py-3 rounded-lg font-medium hover:bg-blue-700 transition shadow">
                         AIコーチングを受ける
                     </button>
-                    <button onclick="closeModal()" class="bg-gray-100 text-gray-700 w-full py-2 rounded-lg font-medium hover:bg-gray-200 transition">
-                        閉じる
-                    </button>
+                    <button onclick="closeModal()" class="bg-gray-100 text-gray-700 w-full py-3 rounded-lg font-medium hover:bg-gray-200 transition">閉じる</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full flex justify-around p-3 text-gray-500 z-10">
-        <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-600" id="nav-dashboard">
-            <i class="fas fa-chart-pie text-xl mb-1"></i>
-            <span class="text-xs">ダッシュボード</span>
-        </button>
-        <button onclick="switchTab('study')" class="flex flex-col items-center hover:text-blue-600 transition" id="nav-study">
-            <i class="fas fa-book text-xl mb-1"></i>
-            <span class="text-xs">座学</span>
-        </button>
-        <button onclick="switchTab('coach')" class="flex flex-col items-center hover:text-blue-600 transition" id="nav-coach">
-            <i class="fas fa-microphone text-xl mb-1"></i>
-            <span class="text-xs">AIコーチ</span>
-        </button>
-        <button onclick="switchTab('board')" class="flex flex-col items-center hover:text-blue-600 transition relative" id="nav-board">
-            <i class="fas fa-users text-xl mb-1"></i>
-            <span class="text-xs">掲示板</span>
-            <span id="nav-lock-icon" class="absolute top-1 right-4 text-[10px] bg-yellow-400 text-blue-900 px-1 rounded-full"><i class="fas fa-lock"></i></span>
-        </button>
-    </nav>
 
     <script>
         let isPassed = localStorage.getItem('examPassed') === 'true';
@@ -316,56 +604,94 @@
         document.addEventListener('DOMContentLoaded', () => {
             updateUIStatus();
             initChart();
+            initProfileFeatures();
         });
 
-        // タブ切り替え（新規イベント作成画面も考慮）
+        // ================= Responsive Tab Switching =================
         function switchTab(tabName) {
-            const screens = ['dashboard-screen', 'study-screen', 'coach-screen', 'board-screen', 'create-event-screen'];
-            const navs = ['nav-dashboard', 'nav-study', 'nav-coach', 'nav-board'];
-            
+            const screens = ['dashboard-screen', 'study-screen', 'coach-screen', 'board-screen', 'create-event-screen', 'talk-screen', 'profile-screen'];
             screens.forEach(s => document.getElementById(s).classList.add('hidden'));
-            navs.forEach(n => document.getElementById(n).classList.remove('text-blue-600'));
 
-            // create-eventの場合はタブのハイライトは掲示板のままにする
-            if(tabName === 'create-event') {
-                document.getElementById('create-event-screen').classList.remove('hidden');
-                document.getElementById('nav-board').classList.add('text-blue-600');
-            } else {
-                document.getElementById(`${tabName}-screen`).classList.remove('hidden');
-                document.getElementById(`nav-${tabName}`).classList.add('text-blue-600');
+            // Mobile Nav Reset
+            ['dashboard', 'study', 'coach', 'board', 'talk', 'profile'].forEach(n => {
+                const mBtn = document.getElementById(`nav-mobile-${n}`);
+                if(mBtn) mBtn.classList.remove('text-blue-600');
+                
+                const dBtn = document.getElementById(`nav-desktop-${n}`);
+                if(dBtn) {
+                    dBtn.classList.remove('text-blue-600', 'bg-blue-50');
+                    dBtn.classList.add('text-gray-600');
+                }
+            });
+
+            // Target Logic
+            const targetNav = tabName === 'create-event' ? 'board' : tabName;
+            
+            const activeM = document.getElementById(`nav-mobile-${targetNav}`);
+            if(activeM) activeM.classList.add('text-blue-600');
+            
+            const activeD = document.getElementById(`nav-desktop-${targetNav}`);
+            if(activeD) {
+                activeD.classList.remove('text-gray-600');
+                activeD.classList.add('text-blue-600', 'bg-blue-50');
             }
+
+            document.getElementById(`${tabName}-screen`).classList.remove('hidden');
 
             if(tabName === 'coach') exitReportView();
+            if(tabName === 'talk') closeChatView();
+            if(tabName === 'profile') loadProfileData();
         }
 
-        // --- イベント作成フローの制御 ---
-        function handleCreateEvent() {
-            if (!isPassed) {
-                openModal();
+        // ================= System Status (Desktop & Mobile Sync) =================
+        function updateUIStatus() {
+            const badges = document.querySelectorAll('.status-badge');
+            const statusText = document.getElementById('status-text');
+            const examBtn = document.getElementById('exam-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const lockIcons = document.querySelectorAll('.nav-lock-icon');
+
+            if (isPassed) {
+                badges.forEach(b => {
+                    b.className = "status-badge bg-yellow-400 text-blue-900 text-xs font-bold px-2 py-1 rounded transition-colors duration-300 inline-block";
+                    b.innerHTML = '<i class="fas fa-check-circle mr-1"></i>合格済';
+                });
+                statusText.innerText = "おめでとうございます！認定試験に合格しています。";
+                examBtn.classList.add('hidden');
+                resetBtn.classList.remove('hidden');
+                lockIcons.forEach(i => i.classList.add('hidden'));
             } else {
-                // 合格済みなら作成画面へ
-                switchTab('create-event');
+                badges.forEach(b => {
+                    b.className = "status-badge bg-gray-400 text-white text-xs font-bold px-2 py-1 rounded transition-colors duration-300 inline-block";
+                    b.innerText = "認定試験 未合格";
+                });
+                statusText.innerText = "AIコーチングを完了させて、認定試験に挑戦しましょう。";
+                examBtn.classList.remove('hidden');
+                resetBtn.classList.add('hidden');
+                lockIcons.forEach(i => i.classList.remove('hidden'));
             }
         }
 
-        function cancelCreateEvent() {
-            switchTab('board');
+        // ================= Event Handlers (Previous logic retained) =================
+        function simulateExamPass() {
+            isPassed = true; localStorage.setItem('examPassed', 'true'); updateUIStatus(); alert('認定試験に合格しました！');
         }
-
+        function resetStatus() {
+            isPassed = false; localStorage.setItem('examPassed', 'false'); updateUIStatus(); alert('ステータスをリセットしました。');
+        }
+        function handleCreateEvent() {
+            if (!isPassed) openModal(); else switchTab('create-event');
+        }
+        function cancelCreateEvent() { switchTab('board'); }
+        
         function submitNewEvent() {
             const title = document.getElementById('event-title').value.trim();
             const location = document.getElementById('event-location').value.trim();
             const desc = document.getElementById('event-desc').value.trim();
-            
-            if(!title || !location) {
-                alert('「イベントタイトル」と「開催場所」は必須項目です。');
-                return;
-            }
+            if(!title || !location) { alert('「イベントタイトル」と「開催場所」は必須項目です。'); return; }
 
-            // 新しいイベントカード用のDOMを生成
             const newCard = document.createElement('div');
-            // animate-fade-in クラスで追加時にふわっと表示させる
-            newCard.className = 'bg-white p-5 rounded-lg shadow border-l-4 border-green-500 animate-fade-in';
+            newCard.className = 'bg-white p-5 rounded-xl shadow border border-gray-100 border-l-4 border-l-green-500 animate-fade-in';
             newCard.innerHTML = `
                 <div class="flex justify-between items-start mb-2">
                     <span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded">主催（あなた）</span>
@@ -375,47 +701,33 @@
                 <p class="text-sm text-gray-600 mb-3">${desc || '詳細は未設定です。'}</p>
                 <div class="text-xs text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> ${location}</div>
             `;
-            
-            // 掲示板の先頭に新しいカードを追加
             const eventList = document.getElementById('event-list');
             eventList.insertBefore(newCard, eventList.firstChild);
 
-            // フォームのリセット
             document.getElementById('event-title').value = '';
             document.getElementById('event-location').value = '';
             document.getElementById('event-desc').value = '';
             document.getElementById('event-date').value = '';
 
-            // 掲示板に戻る
             switchTab('board');
-            
-            // 少し遅れて完了アラートを出す
-            setTimeout(() => {
-                alert('イベントを公開しました！');
-            }, 300);
+            setTimeout(() => { alert('イベントを公開しました！'); }, 300);
         }
 
-        // --- コーチング機能（変更なし） ---
+        // AI Coach Logic
         function startCoachingSession() {
-            turnCount = 0;
-            document.getElementById('turn-counter').innerText = turnCount;
+            turnCount = 0; document.getElementById('turn-counter').innerText = turnCount;
             document.getElementById('coach-init-view').classList.add('hidden');
             document.getElementById('coach-active-view').classList.remove('hidden');
             document.getElementById('coach-report-view').classList.add('hidden');
         }
-
         function toggleMicSimulate() {
             const micStatus = document.getElementById('mic-status');
             const chatInput = document.getElementById('chat-input');
             if(micStatus.classList.contains('hidden')) {
                 micStatus.classList.remove('hidden');
-                setTimeout(() => {
-                    chatInput.value = "プロジェクトは計画通り進んでおり、現在は順調にタスク処理をこなしています。";
-                    micStatus.classList.add('hidden');
-                }, 1500);
+                setTimeout(() => { chatInput.value = "プロジェクトは計画通り進んでいます。"; micStatus.classList.add('hidden'); }, 1500);
             }
         }
-
         function handleSend() {
             const chatInput = document.getElementById('chat-input');
             const text = chatInput.value.trim();
@@ -423,17 +735,13 @@
 
             addMessage(text, 'user');
             chatInput.value = '';
-            turnCount++;
-            document.getElementById('turn-counter').innerText = turnCount;
+            turnCount++; document.getElementById('turn-counter').innerText = turnCount;
 
             if (turnCount < 3) {
                 const loadingId = addMessage('...', 'ai', true);
                 setTimeout(() => {
                     document.getElementById(loadingId).remove();
-                    const mockAiResponses = [
-                        "なるほど、順調そうだね。ただ、上司への報告としては『順調』という解釈だけでなく、数字ベースの進捗データも添えてくれるとありがたいんだが、どうかな？",
-                        "ありがとう。数字で見るとよく分かるね。ではそのボトルネックに対して、君自身はどんな代案や解決の仮説を持っているかい？"
-                    ];
+                    const mockAiResponses = ["数字ベースの進捗データも添えてくれるとありがたいんだが、どうかな？", "そのボトルネックに対して、君自身はどんな代案や解決の仮説を持っているかい？"];
                     addMessage(mockAiResponses[turnCount - 1], 'ai');
                 }, 1200);
             } else {
@@ -445,7 +753,6 @@
                 }, 2000);
             }
         }
-
         function addMessage(text, sender, isLoading = false) {
             const chatArea = document.getElementById('chat-area');
             const div = document.createElement('div');
@@ -453,123 +760,270 @@
             const id = 'msg-' + Date.now();
             if (isLoading) div.id = id;
             const innerDiv = document.createElement('div');
-            innerDiv.className = sender === 'user' ? 'bg-blue-600 text-white p-3 rounded-lg max-w-[80%] text-sm' : 'bg-blue-100 p-3 rounded-lg max-w-[80%] text-sm';
+            innerDiv.className = sender === 'user' ? 'bg-blue-600 text-white p-3 rounded-lg max-w-[80%] text-sm shadow-sm' : 'bg-blue-100 p-3 rounded-lg max-w-[80%] text-sm shadow-sm';
+            const p = document.createElement('p'); p.textContent = text;
+            innerDiv.appendChild(p); div.appendChild(innerDiv); chatArea.appendChild(div);
+            chatArea.scrollTop = chatArea.scrollHeight; return id;
+        }
+        function exitReportView() {
+            document.getElementById('coach-init-view').classList.remove('hidden');
+            document.getElementById('coach-active-view').classList.add('hidden');
+            document.getElementById('coach-report-view').classList.add('hidden');
+            document.getElementById('chat-area').innerHTML = `<div class="flex items-start"><div class="bg-blue-100 p-3 rounded-lg max-w-[80%]"><p class="text-sm">お疲れ様。例の新規プロジェクトの進捗状況はどうなっているかな？</p></div></div>`;
+        }
+
+        // Modals
+        function openHistoryDetail(date, title, score, comment) {
+            document.getElementById('modal-title').innerText = title; document.getElementById('modal-date').innerText = date;
+            document.getElementById('modal-score').innerText = score + "点"; document.getElementById('modal-comment').innerText = comment;
+            const modal = document.getElementById('history-modal');
+            modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95'); }, 10);
+        }
+        function closeHistoryModal() {
+            const modal = document.getElementById('history-modal');
+            modal.classList.add('opacity-0'); modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+        function openModal() {
+            const modal = document.getElementById('alert-modal');
+            modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95'); }, 10);
+        }
+        function closeModal() {
+            const modal = document.getElementById('alert-modal');
+            modal.classList.add('opacity-0'); modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        // Chart
+        function initChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: { labels: ['レスポンスのテンポ', '傾聴比率', '性格マッチング'], datasets: [{ label: '現在のスコア', data: [65, 40, 80], backgroundColor: 'rgba(37, 99, 235, 0.2)', borderColor: 'rgba(37, 99, 235, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(37, 99, 235, 1)' }] },
+                options: { scales: { r: { beginAtZero: true, max: 100 } }, maintainAspectRatio: false }
+            });
+        }
+
+        // ================= TALK FEATURE LOGIC =================
+        let currentMatchingUser = 0;
+        let currentChatUser = null;
+        
+        const matchingUsers = [
+            { id: 'user-m1', name: '山田 太郎', info: '営業職・29歳・東京', compatibility: 91, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200', traits: ['営業職', '東京', '29歳', '人付き合いが得意'] },
+            { id: 'user-m2', name: '伊藤 健太', info: 'IT職・27歳・名古屋', compatibility: 86, img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200&h=200', traits: ['IT職', '名古屋', '27歳', 'テック好き'] },
+            { id: 'user-m3', name: '佐々木 由美', info: '企画職・28歳・大阪', compatibility: 79, img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200', traits: ['企画職', '大阪', '28歳', 'クリエイティブ好き'] }
+        ];
+
+        const chatUsers = {
+            'user-1': { name: '田中 花子', info: '営業職・27歳・東京', compatibility: 88, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100&h=100' },
+            'user-2': { name: '鈴木 美咲', info: '企画職・26歳・名古屋', compatibility: 82, img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100&h=100' },
+            'user-3': { name: '佐藤 由美', info: '企画職・28歳・大阪', compatibility: 75, img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100&h=100' }
+        };
+
+        function startMatching() {
+            currentMatchingUser = 0;
+            document.getElementById('talk-list-view').classList.add('hidden');
+            document.getElementById('talk-matching-view').classList.remove('hidden');
+            loadMatchingUser();
+        }
+
+        function loadMatchingUser() {
+            if (currentMatchingUser >= matchingUsers.length) {
+                alert('今日のおすすめユーザーがいなくなりました。明日またお会いしましょう！');
+                closeMatchingView();
+                return;
+            }
+            const user = matchingUsers[currentMatchingUser];
+            document.getElementById('matching-user-img').src = user.img;
+            document.getElementById('matching-user-name').textContent = user.name;
+            document.getElementById('matching-user-info').textContent = user.info;
+            document.querySelector('.bg-gradient-to-r.from-red-100').innerHTML = `<p class="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-pink-600">相性 ${user.compatibility}%</p>`;
+            
+            const traitsHtml = user.traits.map(t => `<p><i class="fas fa-heart text-red-500 mr-2"></i>${t}</p>`).join('');
+            document.querySelector('#talk-matching-view .text-sm.text-gray-600').innerHTML = traitsHtml;
+        }
+
+        function likeUser() {
+            const user = matchingUsers[currentMatchingUser];
+            alert(`${user.name}さんにいいねを送りました！相手もいいねしたらマッチング成立です🎉`);
+            currentMatchingUser++;
+            loadMatchingUser();
+        }
+
+        function skipUser() {
+            currentMatchingUser++;
+            loadMatchingUser();
+        }
+
+        function closeMatchingView() {
+            document.getElementById('talk-matching-view').classList.add('hidden');
+            document.getElementById('talk-list-view').classList.remove('hidden');
+        }
+
+        function openChatView(userId) {
+            currentChatUser = userId;
+            const user = chatUsers[userId];
+            
+            document.getElementById('chat-user-img').src = user.img;
+            document.getElementById('chat-user-name').textContent = user.name;
+            document.getElementById('chat-user-info').textContent = user.info;
+            document.getElementById('chat-compatibility').textContent = user.compatibility + '%';
+            
+            document.getElementById('talk-list-view').classList.add('hidden');
+            document.getElementById('talk-chat-view').classList.remove('hidden');
+            
+            // チャットエリアをリセット
+            document.getElementById('talk-chat-area').innerHTML = `
+                <div class="flex items-start">
+                    <div class="bg-blue-100 p-3 rounded-lg max-w-[80%]"><p class="text-sm">こんにちは！マッチングありがとうございます。</p></div>
+                </div>
+            `;
+        }
+
+        function closeChatView() {
+            currentChatUser = null;
+            document.getElementById('talk-chat-view').classList.add('hidden');
+            document.getElementById('talk-list-view').classList.remove('hidden');
+        }
+
+        function sendTalkMessage() {
+            const input = document.getElementById('talk-input');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            addTalkMessage(text, 'user');
+            input.value = '';
+            
+            // AI自動応答
+            setTimeout(() => {
+                const responses = [
+                    'そうですね！私も同じようなことを考えていました。',
+                    'いいですね。もっと詳しく聞かせてください。',
+                    'なるほど。興味深い話ですね。',
+                    'わかります！その気持ちよくわかります。'
+                ];
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                addTalkMessage(randomResponse, 'other');
+            }, 1000);
+        }
+
+        function addTalkMessage(text, sender) {
+            const chatArea = document.getElementById('talk-chat-area');
+            const div = document.createElement('div');
+            div.className = `flex items-start ${sender === 'user' ? 'justify-end' : ''}`;
+            
+            const innerDiv = document.createElement('div');
+            innerDiv.className = sender === 'user' ? 'bg-blue-600 text-white p-3 rounded-lg max-w-[80%] text-sm shadow-sm' : 'bg-blue-100 p-3 rounded-lg max-w-[80%] text-sm shadow-sm';
+            
             const p = document.createElement('p');
             p.textContent = text;
             innerDiv.appendChild(p);
             div.appendChild(innerDiv);
             chatArea.appendChild(div);
+            
             chatArea.scrollTop = chatArea.scrollHeight;
-            return id;
         }
 
-        function exitReportView() {
-            document.getElementById('coach-init-view').classList.remove('hidden');
-            document.getElementById('coach-active-view').classList.add('hidden');
-            document.getElementById('coach-report-view').classList.add('hidden');
-            document.getElementById('chat-area').innerHTML = `
-                <div class="flex items-start">
-                    <div class="bg-blue-100 p-3 rounded-lg max-w-[80%]">
-                        <p class="text-sm">お疲れ様。例の新規プロジェクトの進捗状況はどうなっているかな？</p>
-                    </div>
-                </div>`;
-        }
-
-        function openHistoryDetail(date, title, score, comment) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-date').innerText = date;
-            document.getElementById('modal-score').innerText = score + "点";
-            document.getElementById('modal-comment').innerText = comment;
-            const modal = document.getElementById('history-modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.querySelector('div').classList.remove('scale-95');
-            }, 10);
-        }
-
-        function closeHistoryModal() {
-            const modal = document.getElementById('history-modal');
-            modal.classList.add('opacity-0');
-            modal.querySelector('div').classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
-        }
-
-        // --- システム全般 ---
-        function updateUIStatus() {
-            const badge = document.getElementById('status-badge');
-            const statusText = document.getElementById('status-text');
-            const examBtn = document.getElementById('exam-btn');
-            const resetBtn = document.getElementById('reset-btn');
-            const lockIcon = document.getElementById('nav-lock-icon');
-
-            if (isPassed) {
-                badge.className = "bg-yellow-400 text-blue-900 text-xs font-bold px-2 py-1 rounded transition-colors duration-300";
-                badge.innerHTML = '<i class="fas fa-check-circle mr-1"></i>認定試験 合格済';
-                statusText.innerText = "おめでとうございます！認定試験に合格しています。掲示板で自由にイベントを作成できます。";
-                examBtn.classList.add('hidden');
-                resetBtn.classList.remove('hidden');
-                lockIcon.classList.add('hidden');
-            } else {
-                badge.className = "bg-gray-400 text-white text-xs font-bold px-2 py-1 rounded transition-colors duration-300";
-                badge.innerText = "認定試験 未合格";
-                statusText.innerText = "AIコーチングを完了させて、認定試験に挑戦しましょう。";
-                examBtn.classList.remove('hidden');
-                resetBtn.classList.add('hidden');
-                lockIcon.classList.remove('hidden');
+        // ================= PROFILE FEATURE LOGIC =================
+        function initProfileFeatures() {
+            // 自己紹介の文字数カウント
+            const bioInput = document.getElementById('profile-bio');
+            if(bioInput) {
+                bioInput.addEventListener('input', () => {
+                    document.getElementById('bio-count').textContent = bioInput.value.length;
+                });
             }
         }
 
-        function simulateExamPass() {
-            isPassed = true;
-            localStorage.setItem('examPassed', 'true');
-            updateUIStatus();
-            alert('認定試験に合格しました！');
-        }
-
-        function resetStatus() {
-            isPassed = false;
-            localStorage.setItem('examPassed', 'false');
-            updateUIStatus();
-            alert('ステータスをリセットしました。');
-        }
-
-        function openModal() {
-            const modal = document.getElementById('alert-modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.querySelector('div').classList.remove('scale-95');
-            }, 10);
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('alert-modal');
-            modal.classList.add('opacity-0');
-            modal.querySelector('div').classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('radarChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['レスポンスのテンポ', '傾聴比率', '性格マッチング'],
-                    datasets: [{
-                        label: '現在のスコア',
-                        data: [65, 40, 80],
-                        backgroundColor: 'rgba(37, 99, 235, 0.2)',
-                        borderColor: 'rgba(37, 99, 235, 1)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgba(37, 99, 235, 1)'
-                    }]
-                },
-                options: {
-                    scales: { r: { beginAtZero: true, max: 100 } },
-                    maintainAspectRatio: false
-                }
+        function loadProfileData() {
+            // LocalStorageからプロフィール情報を読み込み
+            const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            
+            document.getElementById('profile-name').value = savedProfile.name || '';
+            document.getElementById('profile-age').value = savedProfile.age || '';
+            document.getElementById('profile-job').value = savedProfile.job || '';
+            document.getElementById('profile-location').value = savedProfile.location || '';
+            document.getElementById('profile-bio').value = savedProfile.bio || '';
+            document.getElementById('bio-count').textContent = (savedProfile.bio || '').length;
+            
+            // 性格タイプを復元
+            if(savedProfile.personality) {
+                const personalityRadio = document.querySelector(`input[name="personality"][value="${savedProfile.personality}"]`);
+                if(personalityRadio) personalityRadio.checked = true;
+            }
+            
+            // 興味分野を復元
+            const interests = savedProfile.interests || [];
+            document.querySelectorAll('.profile-interests').forEach(checkbox => {
+                checkbox.checked = interests.includes(checkbox.value);
             });
+            
+            // 保存メッセージを隠す
+            document.getElementById('profile-saved-message').classList.add('hidden');
+        }
+
+        function saveProfile() {
+            // 必須項目のチェック
+            const name = document.getElementById('profile-name').value.trim();
+            const age = document.getElementById('profile-age').value.trim();
+            const job = document.getElementById('profile-job').value.trim();
+            const location = document.getElementById('profile-location').value.trim();
+            
+            if(!name || !age || !job || !location) {
+                alert('「名前」「年齢」「職業」「地域」は必須項目です。');
+                return;
+            }
+            
+            // 興味分野を取得
+            const interests = [];
+            document.querySelectorAll('.profile-interests:checked').forEach(checkbox => {
+                interests.push(checkbox.value);
+            });
+            
+            // 性格タイプを取得
+            const personality = document.querySelector('input[name="personality"]:checked')?.value || '';
+            
+            // プロフィール情報をまとめる
+            const profile = {
+                name: name,
+                age: age,
+                job: job,
+                location: location,
+                bio: document.getElementById('profile-bio').value,
+                personality: personality,
+                interests: interests,
+                savedAt: new Date().toISOString()
+            };
+            
+            // LocalStorageに保存
+            localStorage.setItem('userProfile', JSON.stringify(profile));
+            
+            // 成功メッセージを表示
+            const savedMsg = document.getElementById('profile-saved-message');
+            savedMsg.classList.remove('hidden');
+            
+            // 3秒後にメッセージを非表示
+            setTimeout(() => {
+                savedMsg.classList.add('hidden');
+            }, 3000);
+            
+            console.log('プロフィールが保存されました:', profile);
+        }
+
+        function resetProfileForm() {
+            if(confirm('プロフィール情報をリセットしますか？保存されていない変更は失われます。')) {
+                document.getElementById('profile-name').value = '';
+                document.getElementById('profile-age').value = '';
+                document.getElementById('profile-job').value = '';
+                document.getElementById('profile-location').value = '';
+                document.getElementById('profile-bio').value = '';
+                document.getElementById('bio-count').textContent = '0';
+                
+                document.querySelectorAll('input[name="personality"]').forEach(r => r.checked = false);
+                document.querySelectorAll('.profile-interests').forEach(c => c.checked = false);
+                
+                document.getElementById('profile-saved-message').classList.add('hidden');
+            }
         }
     </script>
 </body>
