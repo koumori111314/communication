@@ -1024,6 +1024,45 @@ ${userMsgText}
         function likeUser() { const u = matchingUsers[currentMatchingUser]; alert(`${u.name}さんにいいねを送りました！相手もいいねしたらマッチング成立です🎉`); currentMatchingUser++; loadMatchingUser(); }
         function skipUser() { currentMatchingUser++; loadMatchingUser(); }
         function closeMatchingView() { document.getElementById('talk-matching-view').classList.add('hidden'); document.getElementById('talk-list-view').classList.remove('hidden'); }
+        const preloadedChats = {
+            'user-1': [
+                { sender: 'other', text: 'はじめまして！田中花子です。マッチングありがとうございます。プロフィール見ててなんか話してみたくなって、思い切って送ってみました笑。よろしくお願いします！', time: '昨日 18:32' },
+                { sender: 'user',  text: 'こちらこそ！よろしくです。営業職なんですね。どんな仕事をされているんですか？', time: '昨日 18:45' },
+                { sender: 'other', text: '都内の不動産会社で賃貸の営業をしてます。毎日いろんなお客さんと話せるのが楽しくて。でも最初は本当に緊張しっぱなしで、何をどう話せばいいかまったくわからなくて笑', time: '昨日 18:51' },
+                { sender: 'user',  text: '不動産営業ってすごそう！私も人と話すのが得意じゃなくて、もっとうまくなりたくてこのアプリを始めました。', time: '昨日 19:03' },
+                { sender: 'other', text: '実は私も同じ理由ではじめたんですよ！AIコーチのロールプレイ、もうやってみました？初めてやったとき点数低すぎてちょっと落ち込みました笑', time: '今日 12:14' },
+                { sender: 'user',  text: 'やってみました！思ったよりけっこう厳しくて笑。でもフィードバックが具体的でわかりやすかったです。花子さんはスコアどうでしたか？', time: '今日 12:28' },
+                { sender: 'other', text: '最初65点くらいで「傾聴できてない」って言われてショックで笑。でも最近は75点まで上がってきました！コツはとにかく相手が話し終わるまで絶対に割り込まないことかなって思ってます。', time: '今日 12:35' },
+                { sender: 'user',  text: 'それ、すごく大事そう。私は話が長くなりすぎる癖があって、もっと簡潔に話せるようになりたいんです。', time: '今日 12:41' },
+                { sender: 'other', text: 'わかる〜！私もつい説明しすぎちゃう。「結論から先に言う」を意識するだけで相手の反応がけっこう変わりましたよ。一緒に練習できたら嬉しいです！またいつでも話しかけてくださいね。', time: '今日 12:48' },
+                { sender: 'user',  text: 'ありがとうございます！またいろいろ教えてください。一緒に頑張りましょう。', time: '今日 12:52' },
+            ],
+            'user-2': [
+                { sender: 'other', text: 'こんにちは！マッチングありがとうございます。よろしくお願いします。', time: '昨日 20:10' },
+                { sender: 'user',  text: 'こちらこそよろしくお願いします！企画職ってどんな仕事をされているんですか？', time: '昨日 20:18' },
+                { sender: 'other', text: 'メーカーでプロダクトの企画をしています。仕様書を作ったり、社内のいろんな部署と調整したりと毎日バタバタしてます笑', time: '昨日 20:25' },
+            ],
+            'user-3': [
+                { sender: 'other', text: 'はじめまして！よろしくお願いします。', time: '3日前 14:02' },
+                { sender: 'user',  text: 'よろしくお願いします！大阪から使っているんですね。', time: '3日前 14:10' },
+                { sender: 'other', text: 'そうです！関西出身なのでコミュニケーションには自信あるつもりだったんですけど、ビジネスの場だとまた違いますよね笑', time: '3日前 14:18' },
+            ]
+        };
+
+        function buildChatHTML(messages) {
+            return messages.map(msg => {
+                const isUser = msg.sender === 'user';
+                return `
+                    <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'} gap-1">
+                        <div class="${isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'} p-3 rounded-2xl ${isUser ? 'rounded-br-sm' : 'rounded-bl-sm'} max-w-[78%] text-sm leading-relaxed shadow-sm">
+                            <p>${msg.text}</p>
+                        </div>
+                        <span class="text-[10px] text-gray-400 px-1">${msg.time}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function openChatView(userId) {
             currentChatUser = userId;
             const user = chatUsers[userId];
@@ -1033,7 +1072,12 @@ ${userMsgText}
             document.getElementById('chat-compatibility').textContent = user.compatibility + '%';
             document.getElementById('talk-list-view').classList.add('hidden');
             document.getElementById('talk-chat-view').classList.remove('hidden');
-            document.getElementById('talk-chat-area').innerHTML = `<div class="flex items-start"><div class="bg-blue-100 p-3 rounded-lg max-w-[80%]"><p class="text-sm">こんにちは！マッチングありがとうございます。</p></div></div>`;
+            const history = preloadedChats[userId] || [];
+            const chatArea = document.getElementById('talk-chat-area');
+            chatArea.innerHTML = history.length
+                ? buildChatHTML(history)
+                : `<div class="flex items-start"><div class="bg-gray-100 p-3 rounded-2xl max-w-[78%] text-sm">こんにちは！マッチングありがとうございます。</div></div>`;
+            chatArea.scrollTop = chatArea.scrollHeight;
         }
         function closeChatView() { currentChatUser = null; document.getElementById('talk-chat-view').classList.add('hidden'); document.getElementById('talk-list-view').classList.remove('hidden'); }
         function sendTalkMessage() {
@@ -1048,9 +1092,15 @@ ${userMsgText}
         }
         function addTalkMessage(text, sender) {
             const chatArea = document.getElementById('talk-chat-area');
-            const div = document.createElement('div'); div.className = `flex items-start ${sender === 'user' ? 'justify-end' : ''}`;
-            const inner = document.createElement('div'); inner.className = sender === 'user' ? 'bg-blue-600 text-white p-3 rounded-lg max-w-[80%] text-sm shadow-sm' : 'bg-blue-100 p-3 rounded-lg max-w-[80%] text-sm shadow-sm';
-            const p = document.createElement('p'); p.textContent = text; inner.appendChild(p); div.appendChild(inner); chatArea.appendChild(div);
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+            const wrap = document.createElement('div');
+            wrap.className = `flex flex-col ${sender === 'user' ? 'items-end' : 'items-start'} gap-1`;
+            wrap.innerHTML = `
+                <div class="${sender === 'user' ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'} p-3 rounded-2xl max-w-[78%] text-sm leading-relaxed shadow-sm"><p>${text}</p></div>
+                <span class="text-[10px] text-gray-400 px-1">今日 ${timeStr}</span>
+            `;
+            chatArea.appendChild(wrap);
             chatArea.scrollTop = chatArea.scrollHeight;
         }
 
