@@ -56,6 +56,9 @@
             <button onclick="switchTab('profile')" id="nav-desktop-profile" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-bold">
                 <i class="fas fa-user w-5 text-center"></i> <span>プロフィール</span>
             </button>
+            <button onclick="switchTab('mentor')" id="nav-desktop-mentor" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-bold">
+                <i class="fas fa-star w-5 text-center"></i> <span>メンター</span>
+            </button>
         </nav>
     </aside>
 
@@ -76,6 +79,20 @@
 
                 <!-- 1. DASHBOARD SCREEN -->
                 <section id="dashboard-screen" class="space-y-6">
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl shadow border border-blue-200">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h2 class="text-lg font-bold mb-1">ランク進捗</h2>
+                                <p id="rank-display" class="text-sm text-gray-600">ステージ 1/5: ビギナー</p>
+                            </div>
+                            <span id="rank-progress" class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">進捗: 45%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style="width: 45%;"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">次のステージまで: 3セッション（目標80点以上）</p>
+                    </div>
+                    
                     <div class="bg-white p-6 rounded-xl shadow border border-gray-100">
                         <h2 class="text-lg font-bold mb-2">現在のステータス</h2>
                         <p id="status-text" class="text-gray-600 mb-4">AIコーチングを完了させて、認定試験に挑戦しましょう。</p>
@@ -92,8 +109,34 @@
                     
                     <div class="bg-white p-6 rounded-xl shadow border border-gray-100">
                         <h2 class="text-lg font-bold mb-4">あなたのコミュニケーション傾向</h2>
-                        <div class="relative h-64 md:h-80 w-full">
-                            <canvas id="radarChart"></canvas>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="relative h-64 w-full">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                            <div class="space-y-3 text-sm">
+                                <div>
+                                    <p class="font-bold text-gray-900 mb-1">伝達能力</p>
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-blue-600 h-2 rounded-full" style="width: 65%;"></div>
+                                        </div>
+                                        <span class="text-gray-600 font-bold">65/100</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-900 mb-1">感情に寄り添う</p>
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-green-600 h-2 rounded-full" style="width: 72%;"></div>
+                                        </div>
+                                        <span class="text-gray-600 font-bold">72/100</span>
+                                    </div>
+                                </div>
+                                <div class="pt-2 border-t text-xs text-gray-600">
+                                    <p class="font-bold text-gray-900 mb-1">改善優先度</p>
+                                    <p>🎯 伝達能力を高めると、より一層評価が向上します</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -125,6 +168,32 @@
                             </p>
                             <div class="bg-gray-50 p-3 rounded text-xs space-y-1 text-gray-700 mt-auto">
                                 <p class="font-bold text-gray-900 mb-1">💡 ポイント: 仮説ベースで問いかける</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow p-5 space-y-3 border-l-4 border-green-500">
+                            <div class="flex items-center gap-2 text-green-600 font-bold text-sm">
+                                <i class="fas fa-face-smile"></i> <span>講義 03</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900">共感で心を開く「あいずち」と「リアクション」</h3>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                相手の話を聞くだけでなく、適切な返応（あいずち）で共感を示すことが重要です。沈黙は信頼を損ないます。
+                            </p>
+                            <div class="bg-gray-50 p-3 rounded text-xs space-y-1 text-gray-700 mt-auto">
+                                <p class="font-bold text-gray-900 mb-1">💡 ポイント: 「そうですね」「なるほど」で相手を肯定</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow p-5 space-y-3 border-l-4 border-orange-500 flex flex-col">
+                            <div class="flex items-center gap-2 text-orange-600 font-bold text-sm">
+                                <i class="fas fa-light-bulb"></i> <span>講義 04</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900">プレゼンで印象を残す「ボディーランゲージ」</h3>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                話の内容と同じくらい、視線・表情・身振りが信頼性を左右します。自信を持って相手の目を見て話しましょう。
+                            </p>
+                            <div class="bg-gray-50 p-3 rounded text-xs space-y-1 text-gray-700 mt-auto">
+                                <p class="font-bold text-gray-900 mb-1">💡 ポイント: 視線3秒ルール＆上半身の姿勢</p>
                             </div>
                         </div>
                     </div>
@@ -211,6 +280,34 @@
                                 <p class="text-sm text-gray-600 leading-relaxed">
                                     中盤で上司の話を若干遮るようなタイミングでの発言が検知されました。まずは相手の話を完全に「傾聴」しきってから、自分の仮説や代案を提示すると評価が跳ね上がります。
                                 </p>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-gray-100 rounded-xl p-5 text-left space-y-4 shadow-sm">
+                            <div class="flex items-center gap-2 text-blue-600 font-bold text-sm">
+                                <i class="fas fa-clipboard-check"></i>
+                                <span>評価基準</span>
+                            </div>
+                            <div class="space-y-3 text-sm text-gray-700">
+                                <div>
+                                    <p class="font-bold text-gray-900 mb-1">1. 伝達能力</p>
+                                    <ul class="space-y-1 pl-5 list-disc">
+                                        <li>ロジカル</li>
+                                        <li>簡潔かどうか</li>
+                                        <li>フィラーが少ない</li>
+                                        <li>ボディーランゲージ</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-900 mb-1">2. 感情に寄り添う</p>
+                                    <ul class="space-y-1 pl-5 list-disc">
+                                        <li>共感力</li>
+                                        <li>ストーリーテリング</li>
+                                        <li>あいずち</li>
+                                        <li>深堀質問</li>
+                                        <li>表情</li>
+                                        <li>目線</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         <button onclick="exitReportView()" class="w-full bg-blue-600 text-white font-bold py-3 md:py-4 rounded-lg hover:bg-blue-700 transition shadow">
@@ -469,19 +566,27 @@
 
                             <!-- 性格タイプ -->
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-3">性格タイプ</label>
+                                <label class="block text-sm font-bold text-gray-700 mb-3">性格タイプ（MBTI診断）</label>
                                 <div class="space-y-2">
                                     <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
-                                        <input type="radio" name="personality" value="外向的" class="w-4 h-4 text-blue-600">
-                                        <span class="text-sm font-medium text-gray-700">外向的 - 社交好きで、人との関わりを大切にする</span>
+                                        <input type="radio" name="personality" value="ENFP" class="w-4 h-4 text-blue-600">
+                                        <span class="text-sm font-medium text-gray-700">ENFP - 社交好きで柔軟。新しい可能性を探る</span>
                                     </label>
                                     <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
-                                        <input type="radio" name="personality" value="内向的" class="w-4 h-4 text-blue-600">
-                                        <span class="text-sm font-medium text-gray-700">内向的 - 深い思考が得意で、落ち着いている</span>
+                                        <input type="radio" name="personality" value="INFP" class="w-4 h-4 text-blue-600">
+                                        <span class="text-sm font-medium text-gray-700">INFP - 内向的で理想主義。深い関係を大切</span>
                                     </label>
                                     <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
-                                        <input type="radio" name="personality" value="バランス型" class="w-4 h-4 text-blue-600">
-                                        <span class="text-sm font-medium text-gray-700">バランス型 - 臨機応変に対応できる</span>
+                                        <input type="radio" name="personality" value="ESTJ" class="w-4 h-4 text-blue-600">
+                                        <span class="text-sm font-medium text-gray-700">ESTJ - 実行力が高い。組織的で責任感強</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
+                                        <input type="radio" name="personality" value="ISTJ" class="w-4 h-4 text-blue-600">
+                                        <span class="text-sm font-medium text-gray-700">ISTJ - 実直で信頼できる。計画性に優れた</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
+                                        <input type="radio" name="personality" value="その他MBTI" class="w-4 h-4 text-blue-600">
+                                        <span class="text-sm font-medium text-gray-700">その他のMBTI型</span>
                                     </label>
                                 </div>
                             </div>
@@ -535,6 +640,71 @@
                     </div>
                 </section>
 
+                <!-- 8. MENTOR SCREEN -->
+                <section id="mentor-screen" class="hidden space-y-6">
+                    <div class="flex items-center justify-between border-b pb-4 mb-6">
+                        <h2 class="text-2xl font-bold">メンター制度</h2>
+                        <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded">プレミアム</span>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-xl border border-amber-200 shadow-sm">
+                        <h3 class="font-bold text-gray-900 mb-2"><i class="fas fa-info-circle text-amber-600 mr-2"></i>メンター制度とは</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">
+                            コミュニケーション能力が高いプロが直接あなたをレクチャーする制度です。AIコーチでは学べない、実践的なテクニックや業界知識を習得できます。
+                        </p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-white p-6 rounded-xl shadow border border-gray-100 space-y-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=80&h=80" alt="メンター" class="w-12 h-12 rounded-full object-cover border-2 border-blue-500">
+                                        <div>
+                                            <p class="font-bold text-gray-900">田中 翔太</p>
+                                            <p class="text-xs text-gray-500">営業部長・15年</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">営業職</span>
+                            </div>
+                            <p class="text-sm text-gray-600">売上200%達成。クライアント満足度98%。新入社員から幹部まで多数育成した実績あり。</p>
+                            <div class="pt-3 border-t space-y-1 text-xs text-gray-600">
+                                <p><i class="fas fa-graduation-cap text-blue-600 mr-1"></i> セッション: 月2回まで</p>
+                                <p><i class="fas fa-clock text-blue-600 mr-1"></i> 1セッション: 30分</p>
+                                <p><i class="fas fa-tag text-blue-600 mr-1"></i> 月額: ¥5,980</p>
+                            </div>
+                            <button onclick="alert('メンター予約機能は今後実装予定です。')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition mt-3">
+                                メンタリングを予約
+                            </button>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow border border-gray-100 space-y-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=80&h=80" alt="メンター" class="w-12 h-12 rounded-full object-cover border-2 border-pink-500">
+                                        <div>
+                                            <p class="font-bold text-gray-900">鈴木 美咲</p>
+                                            <p class="text-xs text-gray-500">企画職・10年</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="bg-pink-100 text-pink-800 text-xs font-bold px-2 py-1 rounded">企画職</span>
+                            </div>
+                            <p class="text-sm text-gray-600">プロダクト企画で5つのヒット商品を担当。Z世代とのコミュニケーションが得意。定期的にセミナー開催。</p>
+                            <div class="pt-3 border-t space-y-1 text-xs text-gray-600">
+                                <p><i class="fas fa-graduation-cap text-pink-600 mr-1"></i> セッション: 月2回まで</p>
+                                <p><i class="fas fa-clock text-pink-600 mr-1"></i> 1セッション: 30分</p>
+                                <p><i class="fas fa-tag text-pink-600 mr-1"></i> 月額: ¥5,980</p>
+                            </div>
+                            <button onclick="alert('メンター予約機能は今後実装予定です。')" class="w-full bg-pink-600 text-white font-bold py-2 rounded-lg hover:bg-pink-700 transition mt-3">
+                                メンタリングを予約
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
         <!-- Mobile Bottom Nav -->
         <nav class="md:hidden bg-white border-t border-gray-200 absolute bottom-0 w-full flex justify-around p-3 text-gray-500 z-10 shrink-0 pb-safe overflow-x-auto">
             <button onclick="switchTab('dashboard')" id="nav-mobile-dashboard" class="flex flex-col items-center text-blue-600 w-16 shrink-0">
@@ -556,6 +726,9 @@
             </button>
             <button onclick="switchTab('profile')" id="nav-mobile-profile" class="flex flex-col items-center hover:text-blue-600 transition w-16 shrink-0">
                 <i class="fas fa-user text-xl mb-1"></i><span class="text-[10px] font-medium">プロフィール</span>
+            </button>
+            <button onclick="switchTab('mentor')" id="nav-mobile-mentor" class="flex flex-col items-center hover:text-blue-600 transition w-16 shrink-0">
+                <i class="fas fa-star text-xl mb-1"></i><span class="text-[10px] font-medium">メンター</span>
             </button>
         </nav>
     </div>
@@ -613,7 +786,7 @@
             screens.forEach(s => document.getElementById(s).classList.add('hidden'));
 
             // Mobile Nav Reset
-            ['dashboard', 'study', 'coach', 'board', 'talk', 'profile'].forEach(n => {
+            ['dashboard', 'study', 'coach', 'board', 'talk', 'profile', 'mentor'].forEach(n => {
                 const mBtn = document.getElementById(`nav-mobile-${n}`);
                 if(mBtn) mBtn.classList.remove('text-blue-600');
                 
@@ -794,13 +967,31 @@
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        // Chart
+        // Chart - 伝達能力と感情に寄り添う軸
         function initChart() {
             const ctx = document.getElementById('radarChart').getContext('2d');
             new Chart(ctx, {
                 type: 'radar',
-                data: { labels: ['レスポンスのテンポ', '傾聴比率', '性格マッチング'], datasets: [{ label: '現在のスコア', data: [65, 40, 80], backgroundColor: 'rgba(37, 99, 235, 0.2)', borderColor: 'rgba(37, 99, 235, 1)', borderWidth: 2, pointBackgroundColor: 'rgba(37, 99, 235, 1)' }] },
-                options: { scales: { r: { beginAtZero: true, max: 100 } }, maintainAspectRatio: false }
+                data: { 
+                    labels: ['ロジカル', '簡潔性', 'フィラー少', 'ボディーランゲージ', '共感力', 'ストーリーテリング', 'あいずち', '深堀質問', '表情', '目線'],
+                    datasets: [{ 
+                        label: '現在のスコア', 
+                        data: [70, 60, 50, 65, 75, 70, 80, 65, 70, 75], 
+                        backgroundColor: 'rgba(37, 99, 235, 0.15)', 
+                        borderColor: 'rgba(37, 99, 235, 1)', 
+                        borderWidth: 2, 
+                        pointBackgroundColor: 'rgba(37, 99, 235, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }] 
+                },
+                options: { 
+                    scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 20 } } }, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
             });
         }
 
@@ -808,17 +999,61 @@
         let currentMatchingUser = 0;
         let currentChatUser = null;
         
+        // ユーザーデータ（職業・性格を含む）
         const matchingUsers = [
-            { id: 'user-m1', name: '山田 太郎', info: '営業職・29歳・東京', compatibility: 91, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200', traits: ['営業職', '東京', '29歳', '人付き合いが得意'] },
-            { id: 'user-m2', name: '伊藤 健太', info: 'IT職・27歳・名古屋', compatibility: 86, img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200&h=200', traits: ['IT職', '名古屋', '27歳', 'テック好き'] },
-            { id: 'user-m3', name: '佐々木 由美', info: '企画職・28歳・大阪', compatibility: 79, img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200', traits: ['企画職', '大阪', '28歳', 'クリエイティブ好き'] }
+            { id: 'user-m1', name: '山田 太郎', info: '営業職・29歳・東京', job: '営業職', personality: 'ENFP', listeningRatio: 65, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200', traits: ['営業職', '東京', '29歳', '人付き合いが得意'] },
+            { id: 'user-m2', name: '伊藤 健太', info: 'IT職・27歳・名古屋', job: 'IT職', personality: 'ISTJ', listeningRatio: 70, img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200&h=200', traits: ['IT職', '名古屋', '27歳', 'テック好き'] },
+            { id: 'user-m3', name: '佐々木 由美', info: '企画職・28歳・大阪', job: '企画職', personality: 'INFP', listeningRatio: 75, img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200', traits: ['企画職', '大阪', '28歳', 'クリエイティブ好き'] }
         ];
 
         const chatUsers = {
-            'user-1': { name: '田中 花子', info: '営業職・27歳・東京', compatibility: 88, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100&h=100' },
-            'user-2': { name: '鈴木 美咲', info: '企画職・26歳・名古屋', compatibility: 82, img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100&h=100' },
-            'user-3': { name: '佐藤 由美', info: '企画職・28歳・大阪', compatibility: 75, img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100&h=100' }
+            'user-1': { name: '田中 花子', info: '営業職・27歳・東京', job: '営業職', personality: 'ENFP', compatibility: 88, img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100&h=100' },
+            'user-2': { name: '鈴木 美咲', info: '企画職・26歳・名古屋', job: '企画職', personality: 'INFP', compatibility: 82, img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100&h=100' },
+            'user-3': { name: '佐藤 由美', info: '企画職・28歳・大阪', job: '企画職', personality: 'ISTJ', compatibility: 75, img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100&h=100' }
         };
+
+        // ===== 相性度計算関数 =====
+        function calculateCompatibility(userProfile, otherUser) {
+            let compatibilityScore = 50; // ベーススコア
+            
+            // 1. 職業の多様性（異業種交流を推奨）
+            if (userProfile.job !== otherUser.job) {
+                compatibilityScore += 20; // 異業種なら+20点
+            } else {
+                compatibilityScore += 5; // 同業種なら+5点
+            }
+            
+            // 2. MBTI型の相性（補完関係を重視）
+            const mbtiCompatibility = {
+                'ENFP': ['ISTJ', 'INTJ'], // ENFPと相性が良い型
+                'INFP': ['ESTJ', 'ENTJ'],
+                'ESTJ': ['INFP', 'ISFP'],
+                'ISTJ': ['ENFP', 'ENFJ'],
+                'その他MBTI': []
+            };
+            
+            const userType = userProfile.personality || 'その他MBTI';
+            const otherType = otherUser.personality || 'その他MBTI';
+            
+            if (mbtiCompatibility[userType] && mbtiCompatibility[userType].includes(otherType)) {
+                compatibilityScore += 15; // 相性が良い型なら+15点
+            } else if (userType === otherType) {
+                compatibilityScore += 5; // 同じ型なら+5点
+            } else {
+                compatibilityScore += 10; // その他の組み合わせは+10点
+            }
+            
+            // 3. 傾聴比率（どちらかが極端に高いor低いと相性が良い）
+            const listeningRatioDiff = Math.abs((userProfile.listeningRatio || 70) - (otherUser.listeningRatio || 70));
+            if (listeningRatioDiff > 10) {
+                compatibilityScore += 10; // 傾聴比率が異なるなら+10点
+            } else {
+                compatibilityScore += 5;
+            }
+            
+            // 最大値を100に制限
+            return Math.min(compatibilityScore, 100);
+        }
 
         function startMatching() {
             currentMatchingUser = 0;
@@ -834,10 +1069,18 @@
                 return;
             }
             const user = matchingUsers[currentMatchingUser];
+            
+            // 現在のユーザープロフィール（LocalStorageから取得）
+            const currentUserProfile = JSON.parse(localStorage.getItem('userProfile') || '{"job":"未設定","personality":"その他MBTI","listeningRatio":70}');
+            
+            // 相性度を動的に計算
+            const compatibility = calculateCompatibility(currentUserProfile, user);
+            user.compatibility = compatibility; // ユーザーオブジェクトに相性度を追加
+            
             document.getElementById('matching-user-img').src = user.img;
             document.getElementById('matching-user-name').textContent = user.name;
             document.getElementById('matching-user-info').textContent = user.info;
-            document.querySelector('.bg-gradient-to-r.from-red-100').innerHTML = `<p class="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-pink-600">相性 ${user.compatibility}%</p>`;
+            document.querySelector('.bg-gradient-to-r.from-red-100').innerHTML = `<p class="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-pink-600">相性 ${compatibility}%</p>`;
             
             const traitsHtml = user.traits.map(t => `<p><i class="fas fa-heart text-red-500 mr-2"></i>${t}</p>`).join('');
             document.querySelector('#talk-matching-view .text-sm.text-gray-600').innerHTML = traitsHtml;
